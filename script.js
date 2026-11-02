@@ -253,8 +253,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!cfg || !cfg.databaseURL) {
       isFirebaseConnected = false;
       db = null;
-      fbConnBadge.textContent = "⚡ 로컬실시간 (FB설정클릭)";
-      fbConnBadge.classList.remove("online");
+      if (fbConnBadge) {
+        fbConnBadge.textContent = "⚡ 로컬실시간 (FB설정클릭)";
+        fbConnBadge.classList.remove("online");
+      }
       return false;
     }
 
@@ -262,8 +264,10 @@ document.addEventListener("DOMContentLoaded", () => {
       console.warn("Firebase SDK not loaded yet. Running in offline/local mode.");
       isFirebaseConnected = false;
       db = null;
-      fbConnBadge.textContent = "⚡ 오프라인실시간";
-      fbConnBadge.classList.remove("online");
+      if (fbConnBadge) {
+        fbConnBadge.textContent = "⚡ 오프라인실시간";
+        fbConnBadge.classList.remove("online");
+      }
       return false;
     }
 
@@ -280,16 +284,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
       db = firebase.database();
       isFirebaseConnected = true;
-      fbConnBadge.textContent = "🔥 Firebase 연동됨";
-      fbConnBadge.classList.add("online");
+      if (fbConnBadge) {
+        fbConnBadge.textContent = "🔥 Firebase 연동됨";
+        fbConnBadge.classList.add("online");
+      }
       footerStatusText.textContent = "Firebase 실시간 서버 연결됨";
       return true;
     } catch (err) {
       console.error("Firebase init error:", err);
       isFirebaseConnected = false;
       db = null;
-      fbConnBadge.textContent = "⚠ FB설정확인";
-      fbConnBadge.classList.remove("online");
+      if (fbConnBadge) {
+        fbConnBadge.textContent = "⚠ FB설정확인";
+        fbConnBadge.classList.remove("online");
+      }
       return false;
     }
   }
@@ -303,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   openFirebaseCfgBtn.addEventListener("click", openFirebaseModal);
-  fbConnBadge.addEventListener("click", openFirebaseModal);
+  if (fbConnBadge) fbConnBadge.addEventListener("click", openFirebaseModal);
   fbConfigCloseX.addEventListener("click", () => fbConfigModalBackdrop.classList.remove("show"));
   fbConfigCancelBtn.addEventListener("click", () => fbConfigModalBackdrop.classList.remove("show"));
 

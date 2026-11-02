@@ -310,7 +310,9 @@ document.addEventListener("DOMContentLoaded", () => {
     fbConfigModalBackdrop.classList.add("show");
   }
 
-  openFirebaseCfgBtn.addEventListener("click", openFirebaseModal);
+  openFirebaseCfgBtn.addEventListener("click", () => {
+    playRetroSound("click");
+  });
   if (fbConnBadge) fbConnBadge.addEventListener("click", openFirebaseModal);
   fbConfigCloseX.addEventListener("click", () => fbConfigModalBackdrop.classList.remove("show"));
   fbConfigCancelBtn.addEventListener("click", () => fbConfigModalBackdrop.classList.remove("show"));

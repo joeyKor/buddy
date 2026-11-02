@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BUDDYBUDDY Version 7.0</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Desktop Environment Wrapper -->
+  <div class="desktop-bg">
+    
+    <!-- BuddyBuddy Window -->
+    <div class="buddy-window" id="buddyWindow">
+      
+      <!-- Title Bar (Draggable) -->
+      <div class="title-bar" id="titleBar">
+        <div class="title-left">
+          <!-- Mini winged boot icon -->
+          <svg class="title-icon" viewBox="0 0 36 32" width="22" height="20">
+            <path d="M18 10 C22 3, 29 2, 31 5 C29 8, 26 10, 22 12 Z" fill="#e8f6ff" stroke="#2c5338" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M12 9 C15 7, 21 8, 21 11 L20 20 C20 23, 18 25, 14 25 L6 25 C2 25, 2 19, 6 17 L11 16 Z" fill="#a2d94c" stroke="#2c5338" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M3 23 C3 26, 7 27, 14 27 C19 27, 21 25, 21 23" fill="none" stroke="#c78d52" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M17 15 C23 8, 33 7, 34 11 C32 14, 29 15, 26 16 C29 17, 31 19, 28 21 C25 22, 20 21, 17 19 Z" fill="#ffffff" stroke="#2c5338" stroke-width="1.8" stroke-linejoin="round"/>
+          </svg>
+          <span class="title-text">BUDDYBUDDY</span>
+        </div>
+        <div class="title-controls">
+          <button class="win-btn cfg-btn" id="openFirebaseCfgBtn" title="파이어베이스 연동 설정" aria-label="Firebase Settings">
+            ⚙
+          </button>
+          <button class="win-btn min-btn" id="minBtn" title="최소화" aria-label="Minimize">
+            <span></span>
+          </button>
+          <button class="win-btn close-btn" id="closeBtn" title="닫기" aria-label="Close">
+            <svg viewBox="0 0 10 10" width="9" height="9">
+              <path d="M1.5 1.5 L8.5 8.5 M8.5 1.5 L1.5 8.5" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Inner Main Frame -->
+      <div class="window-inner">
+        
+        <!-- 1. Login View -->
+        <div id="loginView" class="view-section active">
+          <!-- Hero Illustration (Sky, Winged Shoe, Rainbow, Flower Hill) -->
+          <div class="hero-canvas">
+            <svg class="hero-svg" viewBox="0 0 328 288" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- Sky Gradient -->
+                <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#8dc6e8" />
+                  <stop offset="38%" stop-color="#bce1f5" />
+                  <stop offset="68%" stop-color="#e8f6fc" />
+                  <stop offset="100%" stop-color="#ffffff" />
+                </linearGradient>
+
+                <!-- Cloud Gradient -->
+                <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#ffffff" />
+                  <stop offset="75%" stop-color="#f2f9fd" />
+                  <stop offset="100%" stop-color="#d2e9f7" />
+                </linearGradient>
+
+                <!-- Boot Green Gradient -->
+                <linearGradient id="bootBodyGrad" x1="20%" y1="10%" x2="85%" y2="90%">
+                  <stop offset="0%" stop-color="#d9f591" />
+                  <stop offset="35%" stop-color="#a8d84e" />
+                  <stop offset="80%" stop-color="#82b832" />
+                  <stop offset="100%" stop-color="#64941e" />
+                </linearGradient>
+
+                <!-- Boot Toe Highlight -->
+                <radialGradient id="toeShine" cx="35%" cy="35%" r="55%">
+                  <stop offset="0%" stop-color="#efffb8" stop-opacity="0.9" />
+                  <stop offset="50%" stop-color="#c4eb6c" stop-opacity="0.5" />
+                  <stop offset="100%" stop-color="#96cc39" stop-opacity="0" />
+                </radialGradient>
+
+                <!-- Boot Inside Dark Green -->
+                <linearGradient id="bootInnerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#5d8c22" />
+                  <stop offset="100%" stop-color="#8dc43b" />
+                </linearGradient>
+
+                <!-- Wing Gradient -->
+                <linearGradient id="wingGrad" x1="0%" y1="0%" x2="90%" y2="100%">
+                  <stop offset="0%" stop-color="#ffffff" />
+                  <stop offset="65%" stop-color="#f0f9fa" />
+                  <stop offset="100%" stop-color="#c3ded9" />
+                </linearGradient>
+
+                <!-- Sole Gradient -->
+                <linearGradient id="soleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#f3dbb3" />
+                  <stop offset="50%" stop-color="#dfba84" />
+                  <stop offset="100%" stop-color="#b88a51" />
+                </linearGradient>
+
+                <!-- Hill Gradients -->
+                <linearGradient id="hillMain" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#b6db60" />
+                  <stop offset="45%" stop-color="#98c93c" />
+                  <stop offset="100%" stop-color="#7eb328" />
+                </linearGradient>
+
+                <linearGradient id="hillLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#d8ee93" />
+                  <stop offset="60%" stop-color="#add653" />
+                  <stop offset="100%" stop-color="#88bd2f" />
+                </linearGradient>
+
+                <!-- Road Path Gradient -->
+                <linearGradient id="roadGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#e3f3b5" stop-opacity="0.9" />
+                  <stop offset="50%" stop-color="#f5fbe2" stop-opacity="0.95" />
+                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0.98" />
+                </linearGradient>
+
+                <!-- Tree Foliage Gradient -->
+                <radialGradient id="treeGrad" cx="35%" cy="30%" r="65%">
+                  <stop offset="0%" stop-color="#a8cf67" />
+                  <stop offset="60%" stop-color="#7ca83b" />
+                  <stop offset="100%" stop-color="#5a8223" />
+                </radialGradient>
+
+                <!-- Text Drop Shadow -->
+                <filter id="logoShadow" x="-15%" y="-15%" width="135%" height="135%">
+                  <feDropShadow dx="1" dy="2" stdDeviation="2.2" flood-color="#5b9bd5" flood-opacity="0.55" />
+                </filter>
+
+                <filter id="softBlur" x="-10%" y="-10%" width="120%" height="120%">
+                  <feGaussianBlur stdDeviation="1.5" />
+                </filter>
+
+                <!-- Reusable Daisy Flower -->
+                <g id="daisyWhite">
+                  <g fill="#ffffff" stroke="#e8eed5" stroke-width="0.3">
+                    <ellipse cx="0" cy="-9" rx="3.2" ry="6.5" />
+                    <ellipse cx="0" cy="-9" rx="3.2" ry="6.5" transform="rotate(30)" />
+                    <ellipse cx="0" cy="-9" rx="3.2" ry="6.5" transform="rotate(60)" />
+                    <ellipse cx="0" cy="-9" rx="3.2" ry="6.5" transform="rotate(90)" />
+                    <ellipse cx="0" cy="-9" rx="3.2" ry="6.5" transform="rotate(120)" />
+                    <ellipse cx="0" cy="-9" rx="3.2" ry="6.5" transform="rotate(150)" />
+                    <ellipse cx="0" cy="-9" rx="3.2" ry="6.5" transform="rotate(180)" />
+                    <ellipse cx="0" cy="-9" rx="3.2" ry="6.5" transform="rotate(210)" />
+                    <ellipse cx="0" cy="-9" rx="3.2" ry="6.5" transform="rotate(240)" />
+                    <ellipse cx="0" cy="-9" rx="3.2" ry="6.5" transform="rotate(270)" />
+                    <ellipse cx="0" cy="-9" rx="3.2" ry="6.5" transform="rotate(300)" />
+                    <ellipse cx="0" cy="-9" rx="3.2" ry="6.5" transform="rotate(330)" />
+                  </g>
+                  <circle cx="0" cy="0" r="5" fill="#f7c828" />
+                  <circle cx="-1" cy="-1" r="3" fill="#ffdf5d" />
+                </g>
+
+                <!-- Pinkish Tinted Daisy -->
+                <g id="daisyPink">
+                  <g fill="#fce4ec" stroke="#f5cddb" stroke-width="0.3">
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(36)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(72)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(108)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(144)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(180)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(216)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(252)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(288)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(324)" />
+                  </g>
+                  <circle cx="0" cy="0" r="4.5" fill="#f4b427" />
+                  <circle cx="-1" cy="-1" r="2.5" fill="#ffd966" />
+                </g>
+
+                <!-- Lavender Tinted Daisy -->
+                <g id="daisyLavender">
+                  <g fill="#e8eaf6" stroke="#d5d9f0" stroke-width="0.3">
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(36)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(72)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(108)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(144)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(180)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(216)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(252)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(288)" />
+                    <ellipse cx="0" cy="-8" rx="3" ry="6" transform="rotate(324)" />
+                  </g>
+                  <circle cx="0" cy="0" r="4.5" fill="#f2b824" />
+                </g>
+              </defs>
+
+              <!-- 1. Sky Background -->
+              <rect width="328" height="288" fill="url(#skyGrad)" />
+
+              <!-- 2. Soft Rainbow on Left -->
+              <g opacity="0.48" filter="url(#softBlur)">
+                <path d="M -15 225 A 190 190 0 0 1 175 88" fill="none" stroke="#ff7a8a" stroke-width="5" />
+                <path d="M -11 228 A 185 185 0 0 1 175 93" fill="none" stroke="#ffb86c" stroke-width="5" />
+                <path d="M -7 231 A 180 180 0 0 1 175 98" fill="none" stroke="#fff275" stroke-width="5" />
+                <path d="M -3 234 A 175 175 0 0 1 175 103" fill="none" stroke="#8ce99a" stroke-width="5" />
+                <path d="M 1 237 A 170 170 0 0 1 175 108" fill="none" stroke="#74c0fc" stroke-width="5" />
+                <path d="M 5 240 A 165 165 0 0 1 175 113" fill="none" stroke="#b197fc" stroke-width="5" />
+              </g>
+
+              <!-- 3. Fluffy Clouds -->
+              <g class="cloud cloud-1" transform="translate(22, 16)">
+                <path d="M 16 28 C 6 28, 2 20, 9 14 C 10 5, 22 2, 30 8 C 37 1, 52 2, 57 11 C 67 11, 72 20, 64 27 C 61 30, 20 29, 16 28 Z" fill="url(#cloudGrad)" />
+              </g>
+              <g class="cloud cloud-2" transform="translate(202, 22) scale(0.75)">
+                <path d="M 14 26 C 5 26, 2 18, 9 13 C 11 5, 23 3, 30 9 C 38 4, 50 7, 52 15 C 60 16, 61 25, 51 27 C 42 28, 20 27, 14 26 Z" fill="url(#cloudGrad)" />
+              </g>
+              <g class="cloud cloud-3" transform="translate(210, 44)">
+                <path d="M 18 35 C 6 35, 1 25, 10 18 C 11 7, 26 3, 36 10 C 44 2, 62 3, 68 14 C 79 14, 85 25, 75 33 C 70 36, 25 36, 18 35 Z" fill="url(#cloudGrad)" />
+              </g>
+
+              <!-- 4. Distant Trees on Horizon -->
+              <g transform="translate(122, 168)">
+                <line x1="0" y1="8" x2="0" y2="22" stroke="#6d563c" stroke-width="2.5" />
+                <ellipse cx="0" cy="0" rx="14" ry="12" fill="url(#treeGrad)" />
+                <circle cx="-4" cy="-3" r="4" fill="#b4d973" opacity="0.4" />
+              </g>
+              <g transform="translate(162, 155)">
+                <line x1="0" y1="10" x2="0" y2="28" stroke="#614c35" stroke-width="3" />
+                <ellipse cx="0" cy="0" rx="17" ry="15" fill="url(#treeGrad)" />
+                <circle cx="-5" cy="-4" r="5" fill="#b4d973" opacity="0.45" />
+              </g>
+              <g transform="translate(244, 160)">
+                <line x1="0" y1="8" x2="0" y2="25" stroke="#614c35" stroke-width="2.5" />
+                <ellipse cx="0" cy="0" rx="14" ry="13" fill="url(#treeGrad)" />
+                <circle cx="-4" cy="-3" r="4" fill="#b4d973" opacity="0.4" />
+              </g>
+              <g transform="translate(298, 169)">
+                <line x1="0" y1="6" x2="0" y2="19" stroke="#614c35" stroke-width="2" />
+                <ellipse cx="0" cy="0" rx="10" ry="9" fill="url(#treeGrad)" />
+              </g>
+
+              <!-- 5. Green Rolling Hills -->
+              <path d="M 55 210 Q 195 162 335 186 L 335 290 L 55 290 Z" fill="url(#hillMain)" />
+              <path d="M -10 205 Q 90 175 235 235 L 235 290 L -10 290 Z" fill="url(#hillLeft)" />
+              <path d="M -10 232 Q 160 175 335 215 L 335 290 L -10 290 Z" fill="url(#hillMain)" />
+
+              <!-- 6. Winding Country Path -->
+              <path d="M 192 178 C 204 190, 250 205, 258 222 C 266 240, 175 235, 115 268 L 58 268 C 115 228, 222 232, 218 214 C 214 198, 196 190, 187 179 Z" fill="url(#roadGrad)" />
+
+              <!-- 7. Sparkles / Dandelion Seeds Floating -->
+              <g fill="#ffffff" opacity="0.85">
+                <circle cx="195" cy="148" r="1.5" />
+                <circle cx="215" cy="153" r="1.2" />
+                <circle cx="222" cy="166" r="1.8" />
+                <circle cx="268" cy="146" r="1.5" />
+                <circle cx="277" cy="158" r="1.2" />
+                <circle cx="144" cy="150" r="1.3" />
+                <circle cx="88" cy="164" r="1.6" />
+              </g>
+
+              <!-- 8. Meadow Flowers & Stems -->
+              <g stroke="#689f25" stroke-linecap="round" fill="none">
+                <path d="M 18 205 Q 14 245 8 288" stroke-width="3.5" />
+                <path d="M 58 228 Q 52 258 45 288" stroke-width="3" />
+                <path d="M 86 245 Q 83 268 78 288" stroke-width="2.2" />
+                <path d="M 140 235 Q 135 262 128 288" stroke-width="2.5" />
+                <path d="M 168 252 Q 164 270 160 288" stroke-width="2" />
+                <path d="M 12 288 Q 22 260 30 248" stroke-width="2" stroke="#8bc34a"/>
+                <path d="M 28 288 Q 35 265 44 252" stroke-width="1.8" stroke="#7cb342"/>
+                <path d="M 95 288 Q 102 268 110 258" stroke-width="2" stroke="#7cb342"/>
+                <path d="M 225 288 Q 232 272 238 262" stroke-width="1.8" stroke="#689f25"/>
+                <path d="M 285 288 Q 280 268 274 255" stroke-width="1.8" stroke="#689f25"/>
+              </g>
+
+              <use href="#daisyWhite" transform="translate(278, 198) scale(0.32)" />
+              <use href="#daisyWhite" transform="translate(292, 206) scale(0.38)" />
+              <use href="#daisyPink" transform="translate(310, 202) scale(0.32)" />
+              <use href="#daisyWhite" transform="translate(265, 214) scale(0.42)" />
+              <use href="#daisyWhite" transform="translate(284, 224) scale(0.55)" />
+              <use href="#daisyLavender" transform="translate(306, 222) scale(0.45)" />
+              <use href="#daisyWhite" transform="translate(272, 238) scale(0.48)" />
+              <use href="#daisyPink" transform="translate(296, 240) scale(0.52)" />
+              <use href="#daisyWhite" transform="translate(316, 236) scale(0.4)" />
+              <use href="#daisyWhite" transform="translate(264, 255) scale(0.6)" />
+              <use href="#daisyWhite" transform="translate(288, 260) scale(0.45)" />
+              <use href="#daisyWhite" transform="translate(242, 268) scale(0.42)" />
+
+              <use href="#daisyWhite" transform="translate(18, 202) scale(1.55) rotate(-12)" />
+              <use href="#daisyPink" transform="translate(20, 248) scale(1.05) rotate(15)" />
+              <use href="#daisyWhite" transform="translate(4, 272) scale(0.85)" />
+              <use href="#daisyWhite" transform="translate(60, 226) scale(1.45) rotate(8)" />
+              <use href="#daisyWhite" transform="translate(92, 242) scale(0.85)" />
+              <use href="#daisyLavender" transform="translate(72, 262) scale(0.95)" />
+              <use href="#daisyWhite" transform="translate(48, 275) scale(0.75)" />
+              <use href="#daisyPink" transform="translate(116, 246) scale(0.95) rotate(-8)" />
+              <use href="#daisyWhite" transform="translate(142, 232) scale(1.1) rotate(12)" />
+              <use href="#daisyWhite" transform="translate(142, 256) scale(0.78)" />
+              <use href="#daisyWhite" transform="translate(166, 248) scale(0.9)" />
+              <use href="#daisyLavender" transform="translate(192, 256) scale(0.85) rotate(18)" />
+              <use href="#daisyWhite" transform="translate(122, 274) scale(0.7)" />
+              <use href="#daisyWhite" transform="translate(96, 278) scale(0.65)" />
+              <use href="#daisyPink" transform="translate(154, 276) scale(0.68)" />
+
+              <!-- 9. Iconic Winged Green Boot & Logo -->
+              <g class="buddy-emblem" id="buddyEmblem">
+                <path d="M 80 78
+                         C 90 62, 108 52, 114 57
+                         C 117 60, 112 67, 106 71
+                         C 112 69, 116 72, 112 77
+                         C 108 82, 100 84, 92 86 Z"
+                      fill="url(#wingGrad)" stroke="#3e6149" stroke-width="2" stroke-linejoin="round" />
+
+                <path d="M 38 128
+                         C 36 138, 46 146, 66 147
+                         C 84 148, 97 141, 114 132
+                         C 116 130, 116 125, 113 123
+                         L 40 122 Z"
+                      fill="url(#soleGrad)" stroke="#4c3d28" stroke-width="2" stroke-linejoin="round" />
+                
+                <path d="M 39 129 C 42 138, 55 142, 72 142 C 88 142, 102 135, 113 128"
+                      fill="none" stroke="#694e2e" stroke-width="1.3" />
+
+                <path d="M 68 77
+                         C 67 84, 68 92, 68 98
+                         C 52 99, 37 107, 38 122
+                         C 39 133, 55 139, 73 139
+                         C 90 139, 103 132, 113 124
+                         C 114 114, 110 96, 109 82
+                         C 103 75, 76 72, 68 77 Z"
+                      fill="url(#bootBodyGrad)" stroke="#3c5e35" stroke-width="2.2" stroke-linejoin="round" />
+
+                <ellipse cx="62" cy="116" rx="21" ry="14" transform="rotate(-8 62 116)" fill="url(#toeShine)" />
+
+                <ellipse cx="89" cy="79" rx="21" ry="8.5" transform="rotate(8 89 79)"
+                         fill="#d9f591" stroke="#3c5e35" stroke-width="2" />
+                <ellipse cx="89" cy="79" rx="15" ry="5" transform="rotate(8 89 79)"
+                         fill="url(#bootInnerGrad)" stroke="#4a7328" stroke-width="1.2" />
+
+                <path d="M 73 74 C 72 68, 81 67, 85 73" fill="#b7e35f" stroke="#3c5e35" stroke-width="1.8" />
+
+                <g stroke="#3c5e35" stroke-width="1.5">
+                  <circle cx="79" cy="89" r="2.2" fill="#e8f5c8" />
+                  <circle cx="78" cy="98" r="2.2" fill="#e8f5c8" />
+                  <path d="M 67 87 Q 73 85 79 89" fill="none" stroke="#d9f591" stroke-width="3" stroke-linecap="round" />
+                  <path d="M 67 87 Q 73 85 79 89" fill="none" stroke="#3c5e35" stroke-width="1.2" stroke-linecap="round" />
+                  <path d="M 66 95 Q 72 93 78 98" fill="none" stroke="#d9f591" stroke-width="3" stroke-linecap="round" />
+                  <path d="M 66 95 Q 72 93 78 98" fill="none" stroke="#3c5e35" stroke-width="1.2" stroke-linecap="round" />
+                </g>
+
+                <path d="M 96 96
+                         C 108 78, 134 62, 142 68
+                         C 146 71, 140 80, 132 85
+                         C 139 84, 143 89, 136 96
+                         C 131 101, 125 103, 120 104
+                         C 126 105, 128 110, 121 115
+                         C 114 119, 102 121, 96 116
+                         C 92 112, 92 103, 96 96 Z"
+                      fill="url(#wingGrad)" stroke="#3c5e35" stroke-width="2.2" stroke-linejoin="round" />
+                <path d="M 132 85 C 122 90, 112 94, 104 97" fill="none" stroke="#6c8f7b" stroke-width="1.5" stroke-linecap="round" />
+                <path d="M 120 104 C 113 107, 107 108, 101 108" fill="none" stroke="#6c8f7b" stroke-width="1.5" stroke-linecap="round" />
+              </g>
+
+              <!-- 10. "buddy BUDDY VERSION 7.0" Typography -->
+              <g filter="url(#logoShadow)">
+                <text x="152" y="96"
+                      font-family="'Arial Rounded MT Bold', 'Trebuchet MS', 'Malgun Gothic', sans-serif"
+                      font-size="30"
+                      font-weight="900"
+                      font-style="italic"
+                      letter-spacing="-0.5"
+                      fill="#ffffff"
+                      stroke="#5d9cd6"
+                      stroke-width="3.5"
+                      paint-order="stroke fill">buddy</text>
+
+                <text x="135" y="131"
+                      font-family="'Arial Black', 'Impact', 'Trebuchet MS', sans-serif"
+                      font-size="37"
+                      font-weight="900"
+                      font-style="italic"
+                      letter-spacing="0.5"
+                      fill="#ffffff"
+                      stroke="#5b9bd5"
+                      stroke-width="4"
+                      paint-order="stroke fill">BUDDY</text>
+              </g>
+
+              <text x="137" y="148"
+                    font-family="'Tahoma', 'Verdana', sans-serif"
+                    font-size="11.5"
+                    font-weight="bold"
+                    letter-spacing="0.4"
+                    fill="#5c87b8">VERSION 7.0</text>
+            </svg>
+          </div>
+
+          <!-- Lime-Green Form Section -->
+          <form class="login-panel" id="loginForm">
+            <div class="top-bevel-line"></div>
+
+            <div class="credentials-grid">
+              <!-- Left column: Labels & Inputs -->
+              <div class="inputs-column">
+                <!-- ID Row -->
+                <div class="field-row">
+                  <label for="userId" class="retro-label">이용자 ID</label>
+                  <div class="combo-pill" id="comboContainer">
+                    <input type="text" id="userId" autocomplete="off" spellcheck="false" />
+                    <button type="button" class="combo-arrow-btn" id="comboToggle" title="최근 접속 ID 목록">
+                      <span class="triangle-down"></span>
+                    </button>
+                    <!-- Dropdown History List (Populated dynamically from user history) -->
+                    <ul class="id-dropdown" id="idDropdown"></ul>
+                  </div>
+                </div>
+
+                <!-- Password Row (Default "1234") -->
+                <div class="field-row">
+                  <label for="userPw" class="retro-label">비밀번호</label>
+                  <div class="input-pill">
+                    <input type="password" id="userPw" value="1234" autocomplete="off" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right column: Login Button -->
+              <div class="button-column">
+                <button type="submit" class="login-submit-btn" id="loginBtn">
+                  <!-- Golden Retro Key Icon -->
+                  <svg class="key-svg" viewBox="0 0 28 16" width="24" height="14">
+                    <defs>
+                      <linearGradient id="goldKey" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#fff099" />
+                        <stop offset="50%" stop-color="#f0c330" />
+                        <stop offset="100%" stop-color="#b87d14" />
+                      </linearGradient>
+                    </defs>
+                    <ellipse cx="7.5" cy="8" rx="6" ry="5.5" fill="url(#goldKey)" stroke="#8c5808" stroke-width="1.3" />
+                    <circle cx="6.5" cy="8" r="2" fill="#e6edd8" stroke="#8c5808" stroke-width="1" />
+                    <path d="M 13.5 6.5 L 25 6.5 L 25 11.5 L 22.5 11.5 L 22.5 9.2 L 20.5 9.2 L 20.5 12.2 L 18 12.2 L 18 9.2 L 13.5 9.2 Z"
+                          fill="url(#goldKey)" stroke="#8c5808" stroke-width="1.2" stroke-linejoin="round" />
+                  </svg>
+                  <span class="login-btn-text">로그인</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Checkboxes Area -->
+            <div class="checkbox-group">
+              <div class="check-line">
+                <label class="retro-check-label">
+                  <input type="checkbox" id="chkStealth" />
+                  <span class="bevel-box"></span>
+                  <span class="chk-text-dark">친구 몰래 입장</span>
+                </label>
+              </div>
+
+              <div class="check-line split-line">
+                <label class="retro-check-label">
+                  <input type="checkbox" id="chkAutoLogin" />
+                  <span class="bevel-box"></span>
+                  <span class="chk-text-light">자동 로그인</span>
+                </label>
+
+                <label class="retro-check-label">
+                  <input type="checkbox" id="chkSavePw" checked />
+                  <span class="bevel-box"></span>
+                  <span class="chk-text-dark">비밀번호 저장</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Bottom Links Bar -->
+            <div class="bottom-links-bar">
+              <a href="#find" class="bottom-link" id="findAccountLink">
+                <span class="arrow-bullet">▶</span> 아이디 /비밀번호 찾기
+              </a>
+              <a href="#signup" class="bottom-link" id="freeSignupLink">
+                <span class="arrow-bullet">▶</span> 무료가입
+              </a>
+            </div>
+          </form>
+        </div>
+
+        <!-- 2. Logged-In Messenger View (Real-time Firebase Notes & Empty/User-Managed Buddy List) -->
+        <div id="messengerView" class="view-section">
+          <div class="messenger-header">
+            <div class="my-status-row">
+              <span class="status-dot" id="myStatusDot"></span>
+              <strong id="displayMyId"></strong>
+              <span class="status-badge" id="displayStatusMode">(온라인)</span>
+              <span class="fb-conn-badge" id="fbConnBadge" title="클릭하여 파이어베이스 설정 확인">🔥 연동대기</span>
+            </div>
+            <div class="my-today-toolbar">
+              <button type="button" class="mini-action-btn" id="openComposeBtn">✉ 쪽지 보내기</button>
+              <button type="button" class="mini-action-btn" id="openAddBuddyBtn">+ 친구 ID 추가</button>
+            </div>
+          </div>
+
+          <div class="buddy-tabs">
+            <button type="button" class="tab-btn active" id="tabNotesBtn">
+              받은 쪽지함 <span class="badge" id="unreadBadge">0</span>
+            </button>
+            <button type="button" class="tab-btn" id="tabSentBtn">
+              보낸 쪽지함
+            </button>
+            <button type="button" class="tab-btn" id="tabBuddiesBtn">
+              버디목록 (<span id="buddyCountSpan">0</span>)
+            </button>
+          </div>
+
+          <!-- Tab Content 1: Received Notes -->
+          <div class="tab-pane active" id="paneNotes">
+            <div class="note-list-container" id="receivedNotesList">
+              <div class="empty-state">도착한 쪽지가 없습니다.</div>
+            </div>
+          </div>
+
+          <!-- Tab Content 2: Sent Notes -->
+          <div class="tab-pane" id="paneSent">
+            <div class="note-list-container" id="sentNotesList">
+              <div class="empty-state">보낸 쪽지가 없습니다.</div>
+            </div>
+          </div>
+
+          <!-- Tab Content 3: Buddy List (Cleaned of all test items!) -->
+          <div class="tab-pane" id="paneBuddies">
+            <div class="buddy-list-box" id="buddyListContainer">
+              <div class="empty-state">
+                등록된 버디가 없습니다.<br/>
+                상단 <b>[+ 친구 ID 추가]</b> 버튼으로 친구를 등록하거나<br/>
+                <b>[✉ 쪽지 보내기]</b>로 바로 쪽지를 보내보세요!
+              </div>
+            </div>
+          </div>
+
+          <div class="messenger-footer">
+            <span class="footer-tip" id="footerStatusText">실시간 쪽지 수신 대기중...</span>
+            <button type="button" class="logout-retro-btn" id="logoutBtn">로그아웃</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal 1: Compose / Read Note Modal -->
+      <div class="retro-modal-backdrop" id="composeModalBackdrop">
+        <div class="retro-modal compose-modal">
+          <div class="retro-modal-header">
+            <span id="composeModalTitle">✉ 버디버디 쪽지 보내기</span>
+            <button type="button" class="modal-x-btn" id="composeCloseX">×</button>
+          </div>
+          <div class="retro-modal-body compose-body">
+            <div class="compose-row">
+              <label for="noteRecipientId">받는사람 ID</label>
+              <input type="text" id="noteRecipientId" placeholder="상대방 이용자 ID 입력" autocomplete="off" />
+            </div>
+            <textarea id="noteContentInput" rows="5" placeholder="주고받을 쪽지 내용을 입력하세요..."></textarea>
+          </div>
+          <div class="retro-modal-footer compose-footer">
+            <button type="button" class="retro-ok-btn" id="sendNoteSubmitBtn">보내기</button>
+            <button type="button" class="retro-cancel-btn" id="composeCancelBtn">닫 기</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 2: Read Incoming Note Detail Modal -->
+      <div class="retro-modal-backdrop" id="readNoteModalBackdrop">
+        <div class="retro-modal compose-modal">
+          <div class="retro-modal-header">
+            <span id="readModalTitle">📩 받은 쪽지 읽기</span>
+            <button type="button" class="modal-x-btn" id="readCloseX">×</button>
+          </div>
+          <div class="retro-modal-body compose-body">
+            <div class="read-meta-row">
+              <div><strong>보낸사람:</strong> <span id="readSenderSpan"></span></div>
+              <div class="read-time" id="readTimeSpan"></div>
+            </div>
+            <div class="read-content-box" id="readContentBox"></div>
+          </div>
+          <div class="retro-modal-footer compose-footer">
+            <button type="button" class="retro-ok-btn" id="replyNoteBtn">답장하기</button>
+            <button type="button" class="retro-cancel-btn" id="deleteNoteBtn">삭제</button>
+            <button type="button" class="retro-cancel-btn" id="readCloseBtn">닫 기</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 3: Firebase Configuration Modal -->
+      <div class="retro-modal-backdrop" id="fbConfigModalBackdrop">
+        <div class="retro-modal compose-modal">
+          <div class="retro-modal-header">
+            <span>🔥 파이어베이스(Firebase) 연동 설정</span>
+            <button type="button" class="modal-x-btn" id="fbConfigCloseX">×</button>
+          </div>
+          <div class="retro-modal-body compose-body">
+            <p class="cfg-help">
+              Firebase 프로젝트의 <b>databaseURL</b> (Realtime Database) 또는 웹 앱 설정 JSON을 붙여넣으시면 실시간 연동됩니다.
+            </p>
+            <div class="compose-row">
+              <label for="fbDbUrlInput">DB URL</label>
+              <input type="text" id="fbDbUrlInput" placeholder="https://프로젝트ID-default-rtdb.firebaseio.com" />
+            </div>
+            <textarea id="fbJsonInput" rows="4" placeholder='또는 firebaseConfig 객체 전체 붙여넣기 (선택):
+{ "apiKey": "...", "projectId": "...", "databaseURL": "..." }'></textarea>
+          </div>
+          <div class="retro-modal-footer compose-footer">
+            <button type="button" class="retro-ok-btn" id="saveFbConfigBtn">저장 및 연결</button>
+            <button type="button" class="retro-cancel-btn" id="fbConfigCancelBtn">닫 기</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal 4: General Alert Modal -->
+      <div class="retro-modal-backdrop" id="modalBackdrop">
+        <div class="retro-modal">
+          <div class="retro-modal-header">
+            <span id="modalTitle">버디버디 알림</span>
+            <button type="button" class="modal-x-btn" id="modalCloseX">×</button>
+          </div>
+          <div class="retro-modal-body" id="modalMessage">
+            알림 메시지입니다.
+          </div>
+          <div class="retro-modal-footer">
+            <button type="button" class="retro-ok-btn" id="modalOkBtn">확 인</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Firebase Compat SDKs (Works on file:// and http://) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

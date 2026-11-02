@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const footerStatusText = document.getElementById("footerStatusText");
 
   const openComposeBtn = document.getElementById("openComposeBtn");
-  const openAddBuddyBtn = document.getElementById("openAddBuddyBtn");
+  const refreshBuddiesBtn = document.getElementById("refreshBuddiesBtn");
 
   const tabNotesBtn = document.getElementById("tabNotesBtn");
   const tabSentBtn = document.getElementById("tabSentBtn");
@@ -112,6 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeListeners = [];
   let currentReadingNote = null;
   let lastKnownNoteCount = null;
+  let lastOnlineCount = null;
 
   // Local sync channel across tabs
   let localBus = null;
@@ -158,6 +159,21 @@ document.addEventListener("DOMContentLoaded", () => {
           gain.connect(audioCtx.destination);
           osc.start(now + idx * 0.085);
           osc.stop(now + idx * 0.085 + 0.3);
+        });
+      } else if (type === "buddy_online") {
+        // Classic pleasant ding when a friend signs in
+        const notes = [784, 1046.5];
+        notes.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.1, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.002, now + idx * 0.08 + 0.22);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.24);
         });
       } else if (type === "note") {
         const notes = [880, 1174.66, 880, 1174.66];
@@ -242,7 +258,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return false;
     }
 
-    // Check if firebase compat library is loaded
     if (typeof firebase === "undefined") {
       console.warn("Firebase SDK not loaded yet. Running in offline/local mode.");
       isFirebaseConnected = false;
@@ -253,9 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      // Reinitialize default app if needed
       if (firebase.apps && firebase.apps.length > 0) {
-        // App already exists, check if databaseURL matches
         const existingApp = firebase.app();
         if (existingApp.options.databaseURL !== cfg.databaseURL) {
           existingApp.delete();
@@ -269,7 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
       isFirebaseConnected = true;
       fbConnBadge.textContent = "🔥 Firebase 연동됨";
       fbConnBadge.classList.add("online");
-      footerStatusText.textContent = "Firebase 실시간 쪽지 서버 연결됨";
+      footerStatusText.textContent = "Firebase 실시간 서버 연결됨";
       return true;
     } catch (err) {
       console.error("Firebase init error:", err);
@@ -343,7 +356,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Try initial connect
   initFirebaseConnection();
 
   // ----------------------------------------------------------
@@ -408,7 +420,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ----------------------------------------------------------
-  // 5. Login Action Handler (No Verification, Uniform PW "1234")
+  // 5. Login / Logout Handlers with Presence Setup
   // ----------------------------------------------------------
   function handleLogin() {
     const idVal = userIdInput.value.trim();
@@ -439,7 +451,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     playRetroSound("login");
 
-    // Update Messenger Header
     displayMyId.textContent = currentUserId;
     if (chkStealth.checked) {
       displayStatusMode.textContent = "(친구 몰래 입장)";
@@ -449,15 +460,16 @@ document.addEventListener("DOMContentLoaded", () => {
       myStatusDot.classList.remove("stealth");
     }
 
-    // Switch view immediately
     loginView.classList.remove("active");
     messengerView.classList.add("active");
 
+    switchTab("buddies");
+
     lastKnownNoteCount = null;
+    lastOnlineCount = null;
     subscribeUserStreams(currentUserId);
   }
 
-  // Trigger login via both form submit and button click
   loginForm.addEventListener("submit", (e) => {
     e.preventDefault();
     handleLogin();
@@ -468,18 +480,50 @@ document.addEventListener("DOMContentLoaded", () => {
     handleLogin();
   });
 
-  // Logout
-  logoutBtn.addEventListener("click", () => {
+  function performLogout() {
     playRetroSound("click");
+
+    // Mark offline in Firebase Presence
+    if (isFirebaseConnected && db && currentUserId) {
+      const safeUserKey = toSafeKey(currentUserId);
+      db.ref(`buddy_v7/presence/${safeUserKey}`).set({
+        userId: currentUserId,
+        online: false,
+        stealth: false,
+        lastSeen: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
+
+    // Mark offline in local presence
+    updateLocalPresence(currentUserId, false);
+
     unsubscribeAllStreams();
     currentUserId = null;
     userPwInput.value = "1234";
     messengerView.classList.remove("active");
     loginView.classList.add("active");
+  }
+
+  logoutBtn.addEventListener("click", performLogout);
+
+  // Set offline on page unload/close
+  window.addEventListener("beforeunload", () => {
+    if (currentUserId) {
+      if (isFirebaseConnected && db) {
+        const safeUserKey = toSafeKey(currentUserId);
+        db.ref(`buddy_v7/presence/${safeUserKey}`).set({
+          userId: currentUserId,
+          online: false,
+          stealth: false,
+          lastSeen: Date.now()
+        });
+      }
+      updateLocalPresence(currentUserId, false);
+    }
   });
 
   // ----------------------------------------------------------
-  // 6. Real-Time Note & Buddy Streams (Firebase + Local Sync)
+  // 6. Real-Time Presence & Note Streams
   // ----------------------------------------------------------
   function unsubscribeAllStreams() {
     activeListeners.forEach((item) => {
@@ -498,22 +542,48 @@ document.addEventListener("DOMContentLoaded", () => {
     unsubscribeAllStreams();
     const safeUserKey = toSafeKey(userId);
 
-    // Make sure Firebase is initialized
     if (!isFirebaseConnected) {
       initFirebaseConnection();
     }
 
     if (isFirebaseConnected && db) {
       try {
-        // Register user presence in Firebase
-        const userRef = db.ref(`buddy_v7/users/${safeUserKey}`);
-        userRef.set({
-          userId: userId,
-          online: !chkStealth.checked,
-          lastLoginAt: Date.now()
-        });
+        // --- 1. Realtime Presence Setup with onDisconnect ---
+        const userPresenceRef = db.ref(`buddy_v7/presence/${safeUserKey}`);
+        const connectedRef = db.ref(".info/connected");
 
-        // 1) Listen to Received Notes
+        const presenceConnCallback = (snap) => {
+          if (snap.val() === true) {
+            // When client disconnects unexpectedly:
+            userPresenceRef.onDisconnect().set({
+              userId: userId,
+              online: false,
+              stealth: false,
+              lastSeen: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            // Set online now
+            userPresenceRef.set({
+              userId: userId,
+              online: !chkStealth.checked,
+              stealth: chkStealth.checked,
+              lastSeen: firebase.database.ServerValue.TIMESTAMP
+            });
+          }
+        };
+        connectedRef.on("value", presenceConnCallback);
+        activeListeners.push({ ref: connectedRef, callback: presenceConnCallback });
+
+        // --- 2. Listen to All Users' Presence for Buddy List ---
+        const allPresenceRef = db.ref("buddy_v7/presence");
+        const allPresenceCallback = (snapshot) => {
+          const data = snapshot.val() || {};
+          renderPresenceBuddies(data);
+        };
+        allPresenceRef.on("value", allPresenceCallback);
+        activeListeners.push({ ref: allPresenceRef, callback: allPresenceCallback });
+
+        // --- 3. Listen to Received Notes ---
         const inboxRef = db.ref(`buddy_v7/inbox/${safeUserKey}`);
         const inboxCallback = (snapshot) => {
           const data = snapshot.val() || {};
@@ -531,7 +601,7 @@ document.addEventListener("DOMContentLoaded", () => {
         inboxRef.on("value", inboxCallback);
         activeListeners.push({ ref: inboxRef, callback: inboxCallback });
 
-        // 2) Listen to Sent Notes
+        // --- 4. Listen to Sent Notes ---
         const sentRef = db.ref(`buddy_v7/sent/${safeUserKey}`);
         const sentCallback = (snapshot) => {
           const data = snapshot.val() || {};
@@ -543,37 +613,53 @@ document.addEventListener("DOMContentLoaded", () => {
         sentRef.on("value", sentCallback);
         activeListeners.push({ ref: sentRef, callback: sentCallback });
 
-        // 3) Listen to User's Custom Buddy List
-        const buddiesRef = db.ref(`buddy_v7/buddies/${safeUserKey}`);
-        const buddiesCallback = (snapshot) => {
-          const data = snapshot.val() || {};
-          const buddies = Object.values(data).map((item) => item.buddyId);
-          renderBuddiesList(buddies);
-        };
-        buddiesRef.on("value", buddiesCallback);
-        activeListeners.push({ ref: buddiesRef, callback: buddiesCallback });
-
         return;
       } catch (err) {
         console.error("Firebase subscription error:", err);
       }
     }
 
-    // Fallback: Local real-time storage mode
+    // Local Presence & Storage Fallback
+    updateLocalPresence(userId, !chkStealth.checked);
     refreshLocalViews();
   }
 
-  // Local storage helper functions
+  // ----------------------------------------------------------
+  // 7. Local Real-Time Storage & Presence Fallback (Multi-Tab)
+  // ----------------------------------------------------------
   function getLocalStore() {
     try {
-      return JSON.parse(localStorage.getItem("buddy7_realtime_db") || '{"inbox":{},"sent":{},"buddies":{}}');
+      return JSON.parse(
+        localStorage.getItem("buddy7_realtime_db") ||
+          '{"inbox":{},"sent":{},"presence":{}}'
+      );
     } catch {
-      return { inbox: {}, sent: {}, buddies: {} };
+      return { inbox: {}, sent: {}, presence: {} };
     }
   }
 
   function saveLocalStore(store) {
     localStorage.setItem("buddy7_realtime_db", JSON.stringify(store));
+  }
+
+  function updateLocalPresence(userId, online) {
+    if (!userId) return;
+    const store = getLocalStore();
+    if (!store.presence) store.presence = {};
+    store.presence[toSafeKey(userId)] = {
+      userId: userId,
+      online: online,
+      stealth: chkStealth.checked,
+      lastSeen: Date.now()
+    };
+    saveLocalStore(store);
+
+    if (localBus) {
+      localBus.postMessage({
+        type: online ? "PRESENCE_ONLINE" : "PRESENCE_OFFLINE",
+        userId: userId
+      });
+    }
   }
 
   function refreshLocalViews() {
@@ -591,22 +677,23 @@ document.addEventListener("DOMContentLoaded", () => {
       .map(([id, val]) => ({ id, ...val }))
       .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-    const buddiesMap = store.buddies[key] || {};
-    const buddies = Object.values(buddiesMap).map((b) => b.buddyId);
-
     renderReceivedNotes(received);
     renderSentNotes(sent);
-    renderBuddiesList(buddies);
+    renderPresenceBuddies(store.presence || {});
   }
 
   if (localBus) {
     localBus.addEventListener("message", (event) => {
-      if (!currentUserId || isFirebaseConnected) return;
       const msg = event.data;
-      if (msg && msg.type === "NEW_NOTE" && toSafeKey(msg.to) === toSafeKey(currentUserId)) {
+      if (!msg) return;
+
+      if (msg.type === "NEW_NOTE" && currentUserId && toSafeKey(msg.to) === toSafeKey(currentUserId)) {
         playRetroSound("note");
       }
-      refreshLocalViews();
+
+      if (!isFirebaseConnected) {
+        refreshLocalViews();
+      }
     });
   }
 
@@ -617,14 +704,148 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ----------------------------------------------------------
-  // 7. Rendering Notes & User-Added Buddies
+  // 8. Dynamic Buddy List: Showing Online & Offline Users
+  // ----------------------------------------------------------
+  function renderPresenceBuddies(presenceData) {
+    const allUsers = Object.values(presenceData || {}).filter(
+      (item) => item && item.userId
+    );
+
+    // Group 1: Currently Online users
+    const onlineUsers = allUsers.filter((u) => u.online === true);
+    onlineUsers.sort((a, b) => {
+      if (a.userId === currentUserId) return -1;
+      if (b.userId === currentUserId) return 1;
+      return a.userId.localeCompare(b.userId);
+    });
+
+    // Group 2: Offline users
+    const offlineUsers = allUsers.filter((u) => !u.online && !u.stealth);
+    offlineUsers.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
+
+    // Sound chime if new user signed in
+    if (lastOnlineCount !== null && onlineUsers.length > lastOnlineCount) {
+      playRetroSound("buddy_online");
+    }
+    lastOnlineCount = onlineUsers.length;
+
+    // Update Counter in Tab
+    buddyCountSpan.textContent = `${onlineUsers.length}명 접속`;
+
+    buddyListContainer.innerHTML = "";
+
+    // 1) Online Group
+    const onlineHeader = document.createElement("div");
+    onlineHeader.className = "buddy-group-header";
+    onlineHeader.innerHTML = `<span>▼ 접속중인 버디 (${onlineUsers.length}명)</span>`;
+    buddyListContainer.appendChild(onlineHeader);
+
+    const onlineItemsContainer = document.createElement("div");
+
+    if (onlineUsers.length === 0) {
+      const emptyItem = document.createElement("div");
+      emptyItem.className = "buddy-item offline";
+      emptyItem.innerHTML = `<span style="color:#888; font-size:11px; padding:4px 0;">현재 접속중인 버디가 없습니다.</span>`;
+      onlineItemsContainer.appendChild(emptyItem);
+    } else {
+      onlineUsers.forEach((user) => {
+        const isMe = user.userId === currentUserId;
+        const item = document.createElement("div");
+        item.className = `buddy-item online ${isMe ? "me" : ""}`;
+        item.innerHTML = `
+          <span class="shoe-bullet">👟</span>
+          <span class="buddy-name">${escapeHtml(user.userId)}</span>
+          ${isMe ? '<span class="badge-me">나</span>' : ""}
+          <span class="buddy-state">[접속중]</span>
+          <div class="buddy-actions">
+            ${
+              isMe
+                ? ""
+                : '<button type="button" class="tiny-btn send-btn">쪽지</button>'
+            }
+          </div>
+        `;
+
+        if (!isMe) {
+          item.querySelector(".send-btn")?.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openComposeModal(user.userId);
+          });
+          item.addEventListener("dblclick", () => openComposeModal(user.userId));
+        }
+
+        onlineItemsContainer.appendChild(item);
+      });
+    }
+
+    buddyListContainer.appendChild(onlineItemsContainer);
+
+    // Toggle Fold
+    onlineHeader.addEventListener("click", () => {
+      onlineItemsContainer.style.display =
+        onlineItemsContainer.style.display === "none" ? "block" : "none";
+    });
+
+    // 2) Offline Group
+    if (offlineUsers.length > 0) {
+      const offlineHeader = document.createElement("div");
+      offlineHeader.className = "buddy-group-header";
+      offlineHeader.innerHTML = `<span>▼ 오프라인 버디 (${offlineUsers.length}명)</span>`;
+      buddyListContainer.appendChild(offlineHeader);
+
+      const offlineItemsContainer = document.createElement("div");
+
+      offlineUsers.forEach((user) => {
+        const item = document.createElement("div");
+        item.className = "buddy-item offline";
+        const timeText = user.lastSeen ? formatTime(user.lastSeen) : "";
+        item.innerHTML = `
+          <span class="shoe-bullet offline">👟</span>
+          <span class="buddy-name">${escapeHtml(user.userId)}</span>
+          <span class="buddy-state">[오프라인] ${timeText}</span>
+          <div class="buddy-actions">
+            <button type="button" class="tiny-btn send-btn">쪽지</button>
+          </div>
+        `;
+        item.querySelector(".send-btn")?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openComposeModal(user.userId);
+        });
+        item.addEventListener("dblclick", () => openComposeModal(user.userId));
+        offlineItemsContainer.appendChild(item);
+      });
+
+      buddyListContainer.appendChild(offlineItemsContainer);
+
+      offlineHeader.addEventListener("click", () => {
+        offlineItemsContainer.style.display =
+          offlineItemsContainer.style.display === "none" ? "block" : "none";
+      });
+    }
+  }
+
+  // Refresh Buddies Button
+  refreshBuddiesBtn.addEventListener("click", () => {
+    playRetroSound("click");
+    footerStatusText.textContent = "접속자 목록을 갱신했습니다.";
+    if (isFirebaseConnected && db) {
+      db.ref("buddy_v7/presence").once("value", (snapshot) => {
+        renderPresenceBuddies(snapshot.val() || {});
+      });
+    } else {
+      refreshLocalViews();
+    }
+  });
+
+  // ----------------------------------------------------------
+  // 9. Rendering Received & Sent Notes
   // ----------------------------------------------------------
   function renderReceivedNotes(notes) {
     const unreadCount = notes.filter((n) => !n.read).length;
     unreadBadge.textContent = unreadCount;
 
     if (notes.length === 0) {
-      receivedNotesList.innerHTML = `<div class="empty-state">도착한 쪽지가 없습니다.<br/>상단 <b>[✉ 쪽지 보내기]</b> 버튼으로<br/>원하는 이용자 ID에게 쪽지를 보내보세요!</div>`;
+      receivedNotesList.innerHTML = `<div class="empty-state">도착한 쪽지가 없습니다.<br/>버디목록에서 접속중인 친구를 눌러<br/><b>[쪽지]</b>를 보내보세요!</div>`;
       return;
     }
 
@@ -666,50 +887,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function renderBuddiesList(buddies) {
-    buddyCountSpan.textContent = buddies.length;
-
-    if (buddies.length === 0) {
-      buddyListContainer.innerHTML = `
-        <div class="empty-state">
-          등록된 버디가 없습니다.<br/>
-          상단 <b>[+ 친구 ID 추가]</b> 버튼으로 친구를 추가하거나<br/>
-          <b>[✉ 쪽지 보내기]</b>로 바로 쪽지를 보내보세요!
-        </div>
-      `;
-      return;
-    }
-
-    buddyListContainer.innerHTML = "";
-    buddies.forEach((buddyId) => {
-      const row = document.createElement("div");
-      row.className = "buddy-item";
-      row.innerHTML = `
-        <span class="shoe-bullet">👟</span>
-        <span class="buddy-name">${escapeHtml(buddyId)}</span>
-        <div class="buddy-actions">
-          <button type="button" class="tiny-btn send-btn">쪽지</button>
-          <button type="button" class="tiny-btn del">삭제</button>
-        </div>
-      `;
-
-      row.querySelector(".send-btn").addEventListener("click", (e) => {
-        e.stopPropagation();
-        openComposeModal(buddyId);
-      });
-
-      row.querySelector(".del").addEventListener("click", (e) => {
-        e.stopPropagation();
-        removeBuddy(buddyId);
-      });
-
-      row.addEventListener("dblclick", () => openComposeModal(buddyId));
-      buddyListContainer.appendChild(row);
-    });
-  }
-
   // ----------------------------------------------------------
-  // 8. Sending, Reading, Replying & Deleting Notes
+  // 10. Sending, Reading, Replying & Deleting Notes
   // ----------------------------------------------------------
   function openComposeModal(prefillRecipient = "") {
     playRetroSound("click");
@@ -842,72 +1021,22 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ----------------------------------------------------------
-  // 9. Add / Remove Custom Buddy ID
-  // ----------------------------------------------------------
-  openAddBuddyBtn.addEventListener("click", () => {
-    playRetroSound("click");
-    const buddyId = prompt("버디목록에 추가할 친구의 이용자 ID를 입력하세요:");
-    if (!buddyId || !buddyId.trim()) return;
-    const trimmed = buddyId.trim();
-
-    if (trimmed === currentUserId) {
-      showModal("알림", "본인 아이디는 추가할 수 없습니다.");
-      return;
-    }
-
-    const myKey = toSafeKey(currentUserId);
-    const buddyKey = toSafeKey(trimmed);
-
-    if (isFirebaseConnected && db) {
-      db.ref(`buddy_v7/buddies/${myKey}/${buddyKey}`).set({
-        buddyId: trimmed,
-        addedAt: Date.now()
-      });
-    } else {
-      const store = getLocalStore();
-      if (!store.buddies[myKey]) store.buddies[myKey] = {};
-      store.buddies[myKey][buddyKey] = { buddyId: trimmed, addedAt: Date.now() };
-      saveLocalStore(store);
-      refreshLocalViews();
-    }
-
-    switchTab("buddies");
-  });
-
-  function removeBuddy(buddyId) {
-    if (!currentUserId) return;
-    const myKey = toSafeKey(currentUserId);
-    const buddyKey = toSafeKey(buddyId);
-
-    if (isFirebaseConnected && db) {
-      db.ref(`buddy_v7/buddies/${myKey}/${buddyKey}`).remove();
-    } else {
-      const store = getLocalStore();
-      if (store.buddies[myKey]) {
-        delete store.buddies[myKey][buddyKey];
-        saveLocalStore(store);
-        refreshLocalViews();
-      }
-    }
-  }
-
-  // ----------------------------------------------------------
-  // 10. Tabs & Window Dragging
+  // 11. Tabs & Window Dragging
   // ----------------------------------------------------------
   function switchTab(tabName) {
     playRetroSound("click");
+    tabBuddiesBtn.classList.toggle("active", tabName === "buddies");
     tabNotesBtn.classList.toggle("active", tabName === "notes");
     tabSentBtn.classList.toggle("active", tabName === "sent");
-    tabBuddiesBtn.classList.toggle("active", tabName === "buddies");
 
+    paneBuddies.classList.toggle("active", tabName === "buddies");
     paneNotes.classList.toggle("active", tabName === "notes");
     paneSent.classList.toggle("active", tabName === "sent");
-    paneBuddies.classList.toggle("active", tabName === "buddies");
   }
 
+  tabBuddiesBtn.addEventListener("click", () => switchTab("buddies"));
   tabNotesBtn.addEventListener("click", () => switchTab("notes"));
   tabSentBtn.addEventListener("click", () => switchTab("sent"));
-  tabBuddiesBtn.addEventListener("click", () => switchTab("buddies"));
 
   // Draggable Window
   let isDragging = false;
@@ -956,11 +1085,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   findAccountLink.addEventListener("click", (e) => {
     e.preventDefault();
-    showModal("아이디 / 비밀번호 안내", '별도 가입 없이 원하시는 이용자 ID로 접속 가능하며,\n비밀번호는 일괄적으로 "1234" 입니다.');
+    showModal(
+      "아이디 / 비밀번호 안내",
+      '별도 가입 없이 원하시는 이용자 ID로 접속 가능하며,\n비밀번호는 일괄적으로 "1234" 입니다.'
+    );
   });
 
   freeSignupLink.addEventListener("click", (e) => {
     e.preventDefault();
-    showModal("버디버디 접속 안내", '검증 없이 원하는 이용자 ID를 입력하고\n비밀번호 "1234"로 즉시 로그인하실 수 있습니다!');
+    showModal(
+      "버디버디 접속 안내",
+      '검증 없이 원하는 이용자 ID를 입력하고\n비밀번호 "1234"로 즉시 로그인하실 수 있습니다!'
+    );
   });
 });

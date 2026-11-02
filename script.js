@@ -552,9 +552,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const userPresenceRef = db.ref(`buddy_v7/presence/${safeUserKey}`);
         const connectedRef = db.ref(".info/connected");
 
+        const myPresenceData = {
+          userId: userId,
+          online: !chkStealth.checked,
+          stealth: chkStealth.checked,
+          lastSeen: firebase.database.ServerValue.TIMESTAMP
+        };
+
+        // Write presence immediately on login
+        userPresenceRef.set(myPresenceData);
+
         const presenceConnCallback = (snap) => {
           if (snap.val() === true) {
-            // When client disconnects unexpectedly:
+            // When client disconnects unexpectedly (close window / disconnect):
             userPresenceRef.onDisconnect().set({
               userId: userId,
               online: false,
@@ -562,13 +572,8 @@ document.addEventListener("DOMContentLoaded", () => {
               lastSeen: firebase.database.ServerValue.TIMESTAMP
             });
 
-            // Set online now
-            userPresenceRef.set({
-              userId: userId,
-              online: !chkStealth.checked,
-              stealth: chkStealth.checked,
-              lastSeen: firebase.database.ServerValue.TIMESTAMP
-            });
+            // Re-confirm online
+            userPresenceRef.set(myPresenceData);
           }
         };
         connectedRef.on("value", presenceConnCallback);
